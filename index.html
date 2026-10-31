@@ -1,5 +1,13 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+/* ?view=desktop preview: force desktop theme on narrow screens */
+try {
+  if (new URLSearchParams(location.search).get("view") === "desktop") {
+    document.querySelector('meta[name="viewport"]').setAttribute("content", "width=1280");
+  }
+} catch (e) {}
+</script>
 <title>Sound Lab</title><style>
 *{box-sizing:border-box}
 body{font-family:system-ui,sans-serif;background-color:#04070d;background-image:linear-gradient(rgba(0,240,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.06) 1px,transparent 1px),radial-gradient(600px 300px at 15% 0%,rgba(255,46,136,.18),transparent 60%),radial-gradient(600px 300px at 85% 20%,rgba(0,240,255,.16),transparent 60%);background-size:44px 44px,44px 44px,auto,auto;background-attachment:fixed;color:#e6fbff;margin:0;padding:16px}
@@ -28,6 +36,22 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
  .controls{flex-direction:column;align-items:stretch} .controls label{display:flex;justify-content:space-between;gap:8px} .break{display:none}
  .swipe-hint{display:block}
  button{width:100%}
+}
+@media(min-width:1024px){
+ body{max-width:1180px;margin-left:auto;margin-right:auto;padding:24px 32px}
+ .controls{gap:14px}
+ #mix{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center}
+ #livePads{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch}
+ #livePads .livepad{margin:0}
+ .grid-wrap{overflow-x:hidden}
+ .grid{grid-template-columns:110px repeat(16,minmax(44px,1fr));min-width:0;gap:6px}
+ .cell{min-height:44px}
+}
+@media(min-width:1440px){
+ body{max-width:1400px;padding:32px 48px}
+ #mix{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .grid{grid-template-columns:130px repeat(16,minmax(54px,1fr));gap:7px}
+ .cell{min-height:54px}
 }
 </style></head><body>
 <h1>Sound Lab</h1>
