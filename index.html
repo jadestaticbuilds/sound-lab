@@ -15,6 +15,10 @@ h1{margin:0 0 2px;font-size:26px;text-transform:uppercase;letter-spacing:2px;tex
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
 button{background:linear-gradient(135deg,#ff2e88,#00f0ff);color:#02131a;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;min-height:48px;font-weight:700;box-shadow:0 0 14px rgba(0,240,255,.35)}
 button.secondary{background:rgba(8,20,32,.9);color:#e6fbff;border:1px solid #123a4a;box-shadow:none} button.active{background:#00f0ff;color:#02131a}
+#recTake.recording{background:#c81e1e;color:#fff;animation:recPulse 1.2s infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 14px rgba(200,30,30,.7)}50%{box-shadow:0 0 4px rgba(200,30,30,.25)}}
+#recStatus{color:#ff6b6b;font-weight:700;font-size:14px}
+#takeCard audio{flex:1 1 100%;max-width:100%}
 .transport{position:sticky;top:0;z-index:5;background:#04070d;padding:10px 0;border-bottom:1px solid #123a4a}
 .break{flex-basis:100%;height:0}
 .grid-wrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid #00f0ff;border-radius:12px;padding:10px;background:rgba(8,20,32,.92);box-shadow:0 0 22px rgba(0,240,255,.22),inset 0 0 0 1px rgba(255,46,136,.25)}
@@ -59,6 +63,7 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
 <p>A step sequencer that runs entirely in your browser. No signup, no upload. Tap a square to turn a sound on or off for that step, then press Play, or press Randomize to hear a new pattern right away.</p>
 <div class="controls transport">
 <button id="play">▶ Play</button><button id="stop" class="secondary">Stop</button>
+<button id="recTake" class="secondary">● Record</button><span id="recStatus"></span>
 <span class="break"></span>
 <label>Genre <select id="genre"><option>Hip Hop</option><option>Techno</option><option>House</option><option>Drum &amp; Bass</option></select></label>
 <label>Kit <select id="kit"><option>Classic</option><option>808-style</option><option>909-style</option></select></label>
@@ -67,6 +72,13 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
 <label>Tempo <span id="bpmVal">120</span> BPM <input id="bpm" type="range" min="60" max="180" value="120"></label>
 <label>Swing <span id="swingVal">0%</span> <input id="swing" type="range" min="0" max="50" value="0"></label>
 <label>Volume <input id="vol" type="range" min="0" max="100" value="80"></label>
+</div>
+<div class="controls" id="takeCard" style="display:none">
+<span class="note" id="takeName"></span>
+<audio id="takeAudio" controls></audio>
+<button id="takeShare" class="secondary" style="display:none">Share</button>
+<button id="takeSave" class="secondary">Save</button>
+<button id="takeDiscard" class="secondary">Discard</button>
 </div>
 <div class="controls" id="mix">
 <label>Kick vol <input id="volKick" type="range" min="0" max="100" value="90"></label>
@@ -320,6 +332,79 @@ function midiBytes(){
  return new Uint8Array(out);
 }
 document.getElementById('exportMidi').onclick=()=>{const blob=new Blob([midiBytes()],{type:'audio/midi'});const a=document.getElementById('downloadMidi');a.href=URL.createObjectURL(blob);a.download='sound-lab-pattern-'+document.getElementById('pattern').value+'.mid';a.style.display='inline';a.click();document.getElementById('status').textContent='MIDI downloaded for pattern '+document.getElementById('pattern').value+'.';};
+// --- Session recording: capture the live mix as a take (takes are not saved across reloads) ---
+const recTakeBtn=document.getElementById('recTake');
+const recStatus=document.getElementById('recStatus');
+const takeCard=document.getElementById('takeCard');
+const takeAudio=document.getElementById('takeAudio');
+const takeNameEl=document.getElementById('takeName');
+let takeRecorder=null,takeChunks=[],takeTimer=null,takeStart=0,takeBlob=null,takeUrl=null;
+function recSupported(){return typeof MediaRecorder!=='undefined';}
+function pickMime(){const cands=['audio/webm;codecs=opus','audio/webm','audio/mp4'];for(const m of cands){try{if(MediaRecorder.isTypeSupported(m))return m;}catch(e){}}return '';}
+function takeExt(mime){return (mime||'').includes('mp4')?'mp4':'webm';}
+function takeStamp(){const d=new Date();const p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());}
+function fmtTime(ms){const s=Math.floor(ms/1000);return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');}
+function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+' MB':Math.max(1,Math.round(b/1024))+' KB';}
+function recTick(){const bytes=takeChunks.reduce((a,c)=>a+c.size,0);recStatus.textContent='● REC '+fmtTime(Date.now()-takeStart)+' · '+fmtSize(bytes);}
+function resetRecUI(){recTakeBtn.classList.remove('recording');recTakeBtn.textContent='● Record';recStatus.textContent='';}
+function discardTake(silent){
+ if(takeUrl){try{URL.revokeObjectURL(takeUrl);}catch(e){}}
+ takeUrl=null;takeBlob=null;takeChunks=[];
+ takeAudio.removeAttribute('src');takeAudio.load();
+ takeCard.style.display='none';
+ if(!silent)document.getElementById('status').textContent='Take discarded.';
+}
+function stopTakeCleanup(){clearInterval(takeTimer);takeRecorder=null;resetRecUI();}
+recTakeBtn.onclick=()=>{
+ if(!recSupported()){document.getElementById('status').textContent='Recording is not supported in this browser.';return;}
+ if(takeRecorder){
+  clearInterval(takeTimer);
+  try{takeRecorder.stop();}catch(e){stopTakeCleanup();}
+  return;
+ }
+ discardTake(true);
+ ensureAudio();
+ const mime=pickMime();
+ takeChunks=[];
+ try{takeRecorder=new MediaRecorder(mediaDest.stream,mime?{mimeType:mime}:undefined);}
+ catch(err){document.getElementById('status').textContent='Could not start recording in this browser.';takeRecorder=null;return;}
+ takeRecorder.ondataavailable=ev=>{if(ev.data&&ev.data.size)takeChunks.push(ev.data);};
+ takeRecorder.onerror=()=>{document.getElementById('status').textContent='Recording hit an error and stopped.';stopTakeCleanup();};
+ takeRecorder.onstop=()=>{
+  clearInterval(takeTimer);
+  const recMime=takeRecorder.mimeType||'audio/webm';
+  takeBlob=new Blob(takeChunks,{type:recMime});
+  takeUrl=URL.createObjectURL(takeBlob);
+  const name='soundlab-take-'+takeStamp()+'.'+takeExt(recMime);
+  takeNameEl.textContent=name;
+  takeAudio.src=takeUrl;
+  let canShare=false;
+  try{canShare=!!(navigator.canShare&&navigator.canShare({files:[new File([takeBlob],name,{type:takeBlob.type})]}));}catch(e){}
+  document.getElementById('takeShare').style.display=canShare?'':'none';
+  takeCard.style.display='flex';
+  document.getElementById('status').textContent='Take ready. Play it back, then save or share it.';
+  stopTakeCleanup();
+ };
+ try{takeRecorder.start(1000);}catch(err){document.getElementById('status').textContent='Could not start recording in this browser.';takeRecorder=null;return;}
+ takeStart=Date.now();
+ recTakeBtn.classList.add('recording');recTakeBtn.textContent='■ Stop';
+ takeTimer=setInterval(recTick,1000);recTick();
+ document.getElementById('status').textContent='Recording. Play the pads or the sequencer, then press Stop.';
+};
+document.getElementById('takeDiscard').onclick=()=>discardTake(false);
+document.getElementById('takeSave').onclick=()=>{
+ if(!takeBlob)return;
+ const a=document.createElement('a');a.href=takeUrl;a.download=takeNameEl.textContent;
+ document.body.appendChild(a);a.click();document.body.removeChild(a);
+ document.getElementById('status').textContent='Take saved to your device.';
+};
+document.getElementById('takeShare').onclick=async ()=>{
+ if(!takeBlob)return;
+ const file=new File([takeBlob],takeNameEl.textContent,{type:takeBlob.type});
+ try{await navigator.share({files:[file],title:'Sound Lab take'});document.getElementById('status').textContent='Take shared.';}
+ catch(err){}
+};
+if(!recSupported()){recTakeBtn.disabled=true;recTakeBtn.title='Recording is not supported in this browser.';}
 applySoundForPattern(document.getElementById('pattern').value);
 render();
 </script></body></html>
