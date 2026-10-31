@@ -65,9 +65,9 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
 <button id="play">▶ Play</button><button id="stop" class="secondary">Stop</button>
 <button id="recTake" class="secondary">● Record</button><span id="recStatus"></span>
 <span class="break"></span>
-<label>Genre <select id="genre"><option>Hip Hop</option><option>Techno</option><option>House</option><option>Drum &amp; Bass</option></select></label>
-<label>Kit <select id="kit"><option>Classic</option><option>808-style</option><option>909-style</option></select></label>
-<label>Bass <select id="bassMode"><option>808-style</option><option>Acid 303-style</option></select></label>
+<label>Genre <select id="genre"><option>Hip Hop</option><option>Techno</option><option>House</option><option>Drum &amp; Bass</option><option>Minimal</option><option>Tech House</option><option>Liquid DnB</option><option>Jungle</option></select></label>
+<label>Kit <select id="kit"><option>Classic</option><option>808-style</option><option>909-style</option><option>Minimal</option><option>Tech House</option><option>Liquid</option><option>Jungle</option></select></label>
+<label>Bass <select id="bassMode"><option>808-style</option><option>Acid 303-style</option><option>Deep Sub</option><option>Reese</option></select></label>
 <button id="random" class="secondary">Randomize genre pattern</button>
 <label>Tempo <span id="bpmVal">120</span> BPM <input id="bpm" type="range" min="60" max="180" value="120"></label>
 <label>Swing <span id="swingVal">0%</span> <input id="swing" type="range" min="0" max="50" value="0"></label>
@@ -132,7 +132,7 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
 <button id="chainPlay" class="secondary">Play chain</button>
 <span id="chainDisplay" class="note">Chain: (empty. Add patterns above.)</span>
 </div>
-<p class="note">Tracks: Kick, Snare, Hi-hat, Clap, and a Bass that plays a short note pattern. Kit switches the drum character (Classic, 808-style, 909-style) and Bass switches between 808-style and Acid 303-style; both work with any pattern, and Randomize keeps your Kit and Bass choices. Each hit is layered, lightly reverberated, and given a small random velocity change, so repeated hits do not sound like a machine gun. Tap a step once for a normal hit, twice for an accent (gold), three times to clear it. Tap M to mute a track, S to solo it. Song mode plays A, then B, then C, then D, looping. Export records 2 bars of the current pattern as an audio file you can download. Patterns A–D are saved on this device only.</p>
+<p class="note">Tracks: Kick, Snare, Hi-hat, Clap, and a Bass that plays a short note pattern. Kit switches the drum character (Classic, 808-style, 909-style, plus Minimal, Tech House, Liquid and Jungle). Bass switches between 808-style, Acid 303-style, Deep Sub and Reese. Kits and bass work with any pattern. Randomize sets the matching kit and bass for each new subgenre, while the original four genres keep your Kit and Bass choices. Each hit is layered, lightly reverberated, and given a small random velocity change, so repeated hits do not sound like a machine gun. Tap a step once for a normal hit, twice for an accent (gold), three times to clear it. Tap M to mute a track, S to solo it. Song mode plays A, then B, then C, then D, looping. Export records 2 bars of the current pattern as an audio file you can download. Patterns A–D are saved on this device only.</p>
 <script>
 const TRACKS=[
  {name:'Kick',fn:playKick,color:'#00f0ff'},{name:'Snare',fn:playSnare,color:'#ff2e88'},{name:'Hi-hat',fn:playHat,color:'#00f0ff'},{name:'Clap',fn:playClap,color:'#ff2e88'},{name:'Bass',fn:playBass,color:'#00f0ff'},
@@ -196,27 +196,40 @@ function kitSel(){const el=document.getElementById('kit');return el?el.value:'Cl
 function bassSel(){const el=document.getElementById('bassMode');return el?el.value:'808-style';}
 function updateKitNote(){const el=document.getElementById('kitNote');if(el)el.textContent='Kit: '+kitSel()+' · Bass: '+bassSel()+'.';}
 function playKick(t,step,vel){vel=vel||1;const v=trackVol('Kick')*vel;const k=kitSel();
- const startF=k==='808-style'?150:k==='909-style'?190:170, endF=k==='808-style'?36:k==='909-style'?45:42,
- rampT=k==='808-style'?0.12:k==='909-style'?0.07:0.1, dec=k==='808-style'?0.45:k==='909-style'?0.22:0.32,
- stopT=k==='808-style'?0.50:k==='909-style'?0.28:0.36, clickF=k==='808-style'?2000:k==='909-style'?3500:2500,
- clickP=k==='808-style'?0.12:k==='909-style'?0.38:0.22, clickD=k==='808-style'?0.015:k==='909-style'?0.012:0.018;
+ const startF=k==='808-style'?150:k==='909-style'?190:k==='Minimal'?160:k==='Tech House'?185:k==='Liquid'?150:k==='Jungle'?200:170, endF=k==='808-style'?36:k==='909-style'?45:k==='Minimal'?46:k==='Tech House'?42:k==='Liquid'?40:k==='Jungle'?44:42,
+ rampT=k==='808-style'?0.12:k==='909-style'?0.07:k==='Minimal'?0.08:k==='Tech House'?0.09:k==='Liquid'?0.10:k==='Jungle'?0.07:0.1, dec=k==='808-style'?0.45:k==='909-style'?0.22:k==='Minimal'?0.24:k==='Tech House'?0.30:k==='Liquid'?0.32:k==='Jungle'?0.26:0.32,
+ stopT=k==='808-style'?0.50:k==='909-style'?0.28:k==='Minimal'?0.30:k==='Tech House'?0.36:k==='Liquid'?0.38:k==='Jungle'?0.32:0.36, clickF=k==='808-style'?2000:k==='909-style'?3500:k==='Minimal'?1800:k==='Tech House'?3200:k==='Liquid'?1500:k==='Jungle'?2800:2500,
+ clickP=k==='808-style'?0.12:k==='909-style'?0.38:k==='Minimal'?0.14:k==='Tech House'?0.30:k==='Liquid'?0.14:k==='Jungle'?0.32:0.22, clickD=k==='808-style'?0.015:k==='909-style'?0.012:k==='Minimal'?0.012:k==='Tech House'?0.014:k==='Liquid'?0.02:k==='Jungle'?0.012:0.018;
  const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(startF,t);o.frequency.exponentialRampToValueAtTime(endF,t+rampT);env(g,t,0.001,0.95*v,dec);o.connect(g);out(g,0);o.start(t);o.stop(t+stopT);if(bassBus){const amt=sidechainAmount();bassBus.gain.cancelScheduledValues(t);bassBus.gain.setValueAtTime(1-Math.min(0.85,amt*0.85),t);bassBus.gain.linearRampToValueAtTime(1,t+duckRelease);}const c=ctx.createBufferSource();c.buffer=noiseBuffer(0.02);const cf=ctx.createBiquadFilter();cf.type='highpass';cf.frequency.value=clickF;const cg=ctx.createGain();env(cg,t,0.001,clickP*v,clickD);c.connect(cf);cf.connect(cg);out(cg,0);c.start(t);}
 function playSnare(t,step,vel){vel=vel||1;const v=trackVol('Snare')*vel;const k=kitSel();
- const bpF=k==='808-style'?1600:k==='909-style'?2200:1900, bpQ=k==='808-style'?0.6:k==='909-style'?0.8:0.7,
- nP=k==='808-style'?0.45:k==='909-style'?0.70:0.6, nD=k==='808-style'?0.22:k==='909-style'?0.16:0.19,
- bF=k==='808-style'?170:k==='909-style'?200:185, bP=k==='808-style'?0.30:k==='909-style'?0.45:0.4,
- bD=k==='808-style'?0.14:k==='909-style'?0.09:0.12;
+ const bpF=k==='808-style'?1600:k==='909-style'?2200:k==='Minimal'?2100:k==='Tech House'?2000:k==='Liquid'?1700:k==='Jungle'?2300:1900, bpQ=k==='808-style'?0.6:k==='909-style'?0.8:k==='Minimal'?0.9:k==='Tech House'?0.8:k==='Liquid'?0.7:k==='Jungle'?0.9:0.7,
+ nP=k==='808-style'?0.45:k==='909-style'?0.70:k==='Minimal'?0.38:k==='Tech House'?0.55:k==='Liquid'?0.42:k==='Jungle'?0.68:0.6, nD=k==='808-style'?0.22:k==='909-style'?0.16:k==='Minimal'?0.12:k==='Tech House'?0.15:k==='Liquid'?0.18:k==='Jungle'?0.13:0.19,
+ bF=k==='808-style'?170:k==='909-style'?200:k==='Minimal'?190:k==='Tech House'?190:k==='Liquid'?175:k==='Jungle'?210:185, bP=k==='808-style'?0.30:k==='909-style'?0.45:k==='Minimal'?0.30:k==='Tech House'?0.38:k==='Liquid'?0.32:k==='Jungle'?0.42:0.4,
+ bD=k==='808-style'?0.14:k==='909-style'?0.09:k==='Minimal'?0.08:k==='Tech House'?0.10:k==='Liquid'?0.12:k==='Jungle'?0.08:0.12;
  const s=ctx.createBufferSource();s.buffer=noiseBuffer(0.25);const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=bpF;f.Q.value=bpQ;const g=ctx.createGain();env(g,t,0.001,nP*v,nD);s.connect(f);f.connect(g);out(g,0.35);s.start(t);const o=ctx.createOscillator(),og=ctx.createGain();o.type='triangle';o.frequency.value=bF;env(og,t,0.001,bP*v,bD);o.connect(og);out(og,0.1);o.start(t);o.stop(t+0.14);}
 function playHat(t,step,vel){vel=vel||1;const v=trackVol('Hat')*vel;const k=kitSel();
- const hpF=k==='808-style'?6500:k==='909-style'?8500:7500, dec=k==='808-style'?0.07:k==='909-style'?0.035:0.05,
- stopT=k==='808-style'?0.08:k==='909-style'?0.04:0.06, peak=k==='808-style'?0.28:k==='909-style'?0.36:0.32;
+ const hpF=k==='808-style'?6500:k==='909-style'?8500:k==='Minimal'?9200:k==='Tech House'?8200:k==='Liquid'?7000:k==='Jungle'?8800:7500, dec=k==='808-style'?0.07:k==='909-style'?0.035:k==='Minimal'?0.028:k==='Tech House'?0.04:k==='Liquid'?0.05:k==='Jungle'?0.035:0.05,
+ stopT=k==='808-style'?0.08:k==='909-style'?0.04:k==='Minimal'?0.035:k==='Tech House'?0.05:k==='Liquid'?0.06:k==='Jungle'?0.045:0.06, peak=k==='808-style'?0.28:k==='909-style'?0.36:k==='Minimal'?0.28:k==='Tech House'?0.32:k==='Liquid'?0.26:k==='Jungle'?0.32:0.32;
  const g=ctx.createGain();env(g,t,0.001,peak*v,dec);const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=hpF;hp.connect(g);out(g,0.12);[587,845,1244,1545,1867,2112].forEach(fr=>{const o=ctx.createOscillator();o.type='square';o.frequency.value=fr*(0.99+Math.random()*0.02);o.connect(hp);o.start(t);o.stop(t+stopT);});}
 function playClap(t,step,vel){vel=vel||1;const v=trackVol('Clap')*vel;const k=kitSel();
- const bpF=k==='808-style'?1100:k==='909-style'?1500:1250, bpQ=k==='808-style'?1.2:k==='909-style'?1.6:1.4,
- p0=k==='808-style'?0.40:k==='909-style'?0.55:0.5, p4=k==='808-style'?0.34:k==='909-style'?0.48:0.42,
- tailD=k==='808-style'?0.32:k==='909-style'?0.20:0.28;
+ const bpF=k==='808-style'?1100:k==='909-style'?1500:k==='Minimal'?1300:k==='Tech House'?1450:k==='Liquid'?1150:k==='Jungle'?1600:1250, bpQ=k==='808-style'?1.2:k==='909-style'?1.6:k==='Minimal'?1.5:k==='Tech House'?1.5:k==='Liquid'?1.2:k==='Jungle'?1.4:1.4,
+ p0=k==='808-style'?0.40:k==='909-style'?0.55:k==='Minimal'?0.35:k==='Tech House'?0.50:k==='Liquid'?0.35:k==='Jungle'?0.50:0.5, p4=k==='808-style'?0.34:k==='909-style'?0.48:k==='Minimal'?0.30:k==='Tech House'?0.42:k==='Liquid'?0.30:k==='Jungle'?0.42:0.42,
+ tailD=k==='808-style'?0.32:k==='909-style'?0.20:k==='Minimal'?0.20:k==='Tech House'?0.22:k==='Liquid'?0.26:k==='Jungle'?0.18:0.28;
  [0,0.014,0.028,0.042,0.075].forEach((d,i)=>{const s=ctx.createBufferSource();s.buffer=noiseBuffer(0.05);const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=bpF;f.Q.value=bpQ;const g=ctx.createGain();env(g,t+d,0.001,(i===4?p4:p0)*v,i===4?tailD:0.04);s.connect(f);f.connect(g);out(g,i===4?0.5:0.15);s.start(t+d);});}
 function playBass(t,s,vel){vel=vel||1;const v=trackVol('Bass')*vel;const f0=bassNoteAt(s);const dest=bassBus||master;
+ if(bassSel()==='Deep Sub'){
+  const o=ctx.createOscillator(),g=ctx.createGain(),sub=ctx.createOscillator(),sg=ctx.createGain();
+  o.type='sine';o.frequency.value=f0;env(g,t,0.02,0.6*v,0.65);o.connect(g);g.connect(dest);o.start(t);o.stop(t+0.7);
+  sub.type='sine';sub.frequency.value=f0/2;env(sg,t,0.02,0.3*v,0.65);sub.connect(sg);sg.connect(dest);sub.start(t);sub.stop(t+0.7);
+  return;
+ }
+ if(bassSel()==='Reese'){
+  const f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='lowpass';f.frequency.value=320;f.Q.value=2;
+  [-7,7].forEach(c=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=f0;o.detune.value=c;o.connect(f);o.start(t);o.stop(t+0.5);});
+  env(g,t,0.01,0.5*v,0.45);f.connect(g);g.connect(dest);
+  return;
+ }
  if(bassSel()==='Acid 303-style'){
   const o=ctx.createOscillator(),f=ctx.createBiquadFilter(),g=ctx.createGain();
   o.type='sawtooth';o.frequency.value=f0;
@@ -278,6 +291,8 @@ function armConfirm(btn,fn){if(btn.dataset.armed){delete btn.dataset.armed;btn.t
 document.getElementById('clear').onclick=e=>armConfirm(e.currentTarget,()=>{state[document.getElementById('pattern').value]=emptyPattern();markDirty();render();document.getElementById('status').textContent='Pattern cleared. Save to keep it.';});
 function setSlider(id,val,displayId,displaySuffix){const el=document.getElementById(id);el.value=val;if(displayId)document.getElementById(displayId).textContent=val+(displaySuffix||'');}
 function setVol(id,val){document.getElementById(id).value=val;}
+function setKitSel(v){const el=document.getElementById('kit');if(el)el.value=v;}
+function setBassSel(v){const el=document.getElementById('bassMode');if(el)el.value=v;}
 function genrePattern(genre){
  const p=emptyPattern();const on=(ti,steps,prob)=>steps.forEach(s=>{if(Math.random()<prob)p[ti][s]=true;});
  const all16=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],off=[2,6,10,14],four=[0,4,8,12],back=[4,12];
@@ -285,11 +300,19 @@ function genrePattern(genre){
  else if(genre==='Techno'){setSlider('bpm',128,'bpmVal');setSlider('swing',5,'swingVal','%');duckRelease=0.18;setVol('volKick',95);setVol('volSnare',65);setVol('volHat',55);setVol('volClap',70);setVol('volBass',65);on(0,four,1);on(1,back,0.7);on(2,off,1);on(2,all16,0.45);on(3,back,1);on(4,off,0.9);on(4,all16,0.3);}
  else if(genre==='House'){setSlider('bpm',124,'bpmVal');setSlider('swing',10,'swingVal','%');duckRelease=0.20;setVol('volKick',95);setVol('volSnare',60);setVol('volHat',60);setVol('volClap',75);setVol('volBass',70);on(0,four,1);on(1,back,0.4);on(2,off,1);on(2,all16,0.35);on(3,back,1);on(4,off,0.95);on(4,[2,6,10,14],0.3);}
  else if(genre==='Drum & Bass'){setSlider('bpm',174,'bpmVal');setSlider('swing',0,'swingVal','%');duckRelease=0.16;setVol('volKick',90);setVol('volSnare',80);setVol('volHat',55);setVol('volClap',40);setVol('volBass',75);on(0,[0,10],0.95);on(0,[7],0.4);on(1,back,1);on(2,all16,0.75);on(2,[3,7,11,15],0.5);on(4,[0,6,11],0.85);}
+ else if(genre==='Minimal'){setSlider('bpm',122,'bpmVal');setSlider('swing',12,'swingVal','%');duckRelease=0.25;setKitSel('Minimal');setBassSel('Deep Sub');setVol('volKick',90);setVol('volSnare',55);setVol('volHat',40);setVol('volClap',40);setVol('volBass',75);setVol('volOpenHat',40);setVol('volRim',55);setVol('volTom',50);on(0,four,0.9);on(0,[2,14],0.25);on(1,[4],0.2);on(2,off,0.5);on(2,all16,0.12);on(4,off,0.7);on(4,[0,8],0.25);}
+ else if(genre==='Tech House'){setSlider('bpm',125,'bpmVal');setSlider('swing',18,'swingVal','%');duckRelease=0.22;setKitSel('Tech House');setBassSel('808-style');setVol('volKick',95);setVol('volSnare',60);setVol('volHat',55);setVol('volClap',75);setVol('volBass',70);setVol('volOpenHat',60);setVol('volRim',50);setVol('volTom',55);on(0,four,1);on(1,back,0.3);on(2,all16,0.55);on(2,off,0.9);on(3,back,0.9);on(4,all16,0.4);on(4,off,0.8);}
+ else if(genre==='Liquid DnB'){setSlider('bpm',172,'bpmVal');setSlider('swing',0,'swingVal','%');duckRelease=0.14;setKitSel('Liquid');setBassSel('Deep Sub');setVol('volKick',85);setVol('volSnare',70);setVol('volHat',45);setVol('volClap',35);setVol('volBass',80);setVol('volOpenHat',40);setVol('volRim',40);setVol('volTom',50);on(0,[0,10],0.95);on(0,[7],0.3);on(1,back,1);on(1,[14],0.25);on(2,all16,0.5);on(2,[2,6,10,14],0.7);on(4,[0,8],0.9);on(4,[3,11],0.4);}
+ else if(genre==='Jungle'){setSlider('bpm',165,'bpmVal');setSlider('swing',8,'swingVal','%');duckRelease=0.16;setKitSel('Jungle');setBassSel('Reese');setVol('volKick',92);setVol('volSnare',80);setVol('volHat',55);setVol('volClap',45);setVol('volBass',78);setVol('volOpenHat',45);setVol('volRim',50);setVol('volTom',60);on(0,[0,3,10],0.9);on(0,[6,12],0.45);on(1,[4,12],1);on(1,[7,14],0.5);on(1,[2],0.3);on(2,all16,0.65);on(4,[0,7,10],0.85);on(4,[14],0.3);}
  if(genre==='Hip Hop'){on(5,[2,10],0.3);on(6,[4],0.3);on(7,[14],0.25);}
  else if(genre==='Techno'){on(5,off,0.6);on(6,[12],0.3);on(7,[15],0.25);}
  else if(genre==='House'){on(5,off,0.5);on(6,back,0.2);on(7,[14],0.2);}
  else if(genre==='Drum & Bass'){on(5,all16,0.2);on(6,[7],0.3);on(7,[11],0.3);}
- document.getElementById('sidechain').value=genre==='Hip Hop'?45:genre==='Techno'?85:genre==='House'?80:65;
+ else if(genre==='Minimal'){on(5,[14],0.25);on(6,[3,11],0.35);on(7,[7],0.2);}
+ else if(genre==='Tech House'){on(5,off,0.85);on(6,[7,15],0.35);on(7,[13],0.2);}
+ else if(genre==='Liquid DnB'){on(5,[6,14],0.3);on(6,[11],0.25);}
+ else if(genre==='Jungle'){on(5,[2,10],0.4);on(5,off,0.25);on(6,[5,13],0.3);on(7,[15],0.25);}
+ document.getElementById('sidechain').value=genre==='Hip Hop'?45:genre==='Techno'?85:genre==='House'?80:genre==='Minimal'?60:genre==='Tech House'?75:genre==='Liquid DnB'?55:genre==='Jungle'?60:65;
  return p;
 }
 document.getElementById('random').onclick=()=>{const genre=document.getElementById('genre').value;state[document.getElementById('pattern').value]=genrePattern(genre);document.getElementById('status').textContent=genre+' pattern, sidechain to kick on.';markDirty();render();if(!playing)document.getElementById('play').click();};
