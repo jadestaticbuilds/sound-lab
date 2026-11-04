@@ -117,6 +117,10 @@ html,body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;us
 <button id="setBassNote" class="secondary">Set bass note</button>
 <span class="note">Bass pads still tap on / accent / off. Use this row to change the note for one bass step, then Save pattern. Notes are saved per pattern.</span>
 </div>
+<div class="controls" style="margin-top:8px">
+<span class="note" style="width:100%">Tap a key to hear it and set it as the current note. Then tap bass grid cells to place that note. Tap a filled bass cell to cycle to the next note.</span>
+<div id="miniKeys" style="display:flex;gap:4px;flex-wrap:wrap;width:100%;margin-top:6px"></div>
+</div>
 <h2 style="font-size:18px;margin:18px 0 0">Live pads</h2>
 <p class="note">These play the sound right now and never edit the pattern. The step grid above is the pattern; these pads are for playing live while it runs.</p>
 <div class="controls" id="livePads"></div>
@@ -179,9 +183,27 @@ function render(){
    for(let s=0;s<16;s++){
      let val=cur()[ti][s];
      const b=document.createElement('button');
-     const paint=()=>{b.className='cell'+(val===2?' accent':val?' on':'')+(playing&&s===step?' playing':'')+(s%4===0?' beat-start':'');b.style.background=val===1?t.color:'';b.title=t.name+' step '+(s+1)+(val===2?' (accent)':'');b.setAttribute('aria-label',t.name+' step '+(s+1)+(val===2?' accent':val?' on':' off'));};
+     const isBass=t.name==='Bass';
+     const paint=()=>{b.className='cell'+(val===2?' accent':val?' on':'')+(playing&&s===step?' playing':'')+(s%4===0?' beat-start':'');b.style.background=val===1?t.color:'';b.title=t.name+' step '+(s+1)+(val===2?' (accent)':'');
+       // Piano-roll: show note name on active bass cells
+       if(isBass&&val){ b.textContent=noteName(bassNoteAt(s)); b.style.fontSize='10px'; b.style.fontWeight='700'; }
+       else b.textContent='';
+       b.setAttribute('aria-label',t.name+' step '+(s+1)+(val===2?' accent':val?' on':' off')+(isBass&&val?' '+noteName(bassNoteAt(s)):''));};
      paint();
-     b.onclick=()=>{val=val?(val===1?2:0):1;cur()[ti][s]=val;markDirty();paint();updateSelCount();};
+     b.onclick=()=>{
+       if(isBass){
+         if(!val){ // empty -> turn on with current keyboard note
+           val=1; cur()[ti][s]=1;
+           bassNotes[document.getElementById('pattern').value][s]=currentNoteFreq;
+         } else if(val===1){ // on -> cycle to next note (piano-roll)
+           cycleBassNote(s);
+         } else { // accent -> off
+           val=0; cur()[ti][s]=0;
+         }
+       } else {
+         val=val?(val===1?2:0):1;cur()[ti][s]=val;
+       }
+       markDirty();paint();updateSelCount();syncBassEditor();};
      grid.appendChild(b);
    }
  });
@@ -324,6 +346,36 @@ document.getElementById('random').onclick=()=>{const genre=document.getElementBy
 const bassNoteSel=document.getElementById('bassNoteSel');
 NOTE_CHOICES.forEach(n=>{const o=document.createElement('option');o.value=n[1];o.textContent=n[0];bassNoteSel.appendChild(o);});
 function syncBassEditor(){const stepEl=document.getElementById('bassStep');if(!stepEl)return;const s=parseInt(stepEl.value,10)-1;const f=bassNoteAt(s);const opt=[...bassNoteSel.options].find(o=>Math.abs(parseFloat(o.value)-f)<0.01);bassNoteSel.value=opt?opt.value:NOTE_CHOICES[0][1];}
+// --- Mini keyboard + piano-roll ---
+let currentNoteFreq = NOTE_CHOICES[0][1]; // default G1
+function buildMiniKeys(){
+  const mk=document.getElementById('miniKeys'); if(!mk) return; mk.innerHTML='';
+  NOTE_CHOICES.forEach(n=>{
+    const b=document.createElement('button'); b.className='secondary'; b.style.minWidth='52px';
+    b.textContent=n[0]; b.title='Play '+n[0];
+    b.onclick=()=>{ currentNoteFreq=n[1]; ensureAudio(); previewNote(n[1]);
+      [...mk.children].forEach(c=>c.classList.remove('selected')); b.classList.add('selected'); };
+    mk.appendChild(b);
+  });
+  if(mk.children[0]) mk.children[0].classList.add('selected');
+}
+function previewNote(freq){
+  if(!ctx) return; const t=ctx.currentTime;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type='sawtooth'; o.frequency.value=freq;
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=800;
+  g.gain.setValueAtTime(0.4,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.4);
+  o.connect(f); f.connect(g); g.connect(master); o.start(t); o.stop(t+0.45);
+}
+function cycleBassNote(step){
+  const pat=document.getElementById('pattern').value;
+  const cur=bassNotes[pat][step];
+  let idx=NOTE_CHOICES.findIndex(n=>Math.abs(n[1]-cur)<0.01);
+  idx=(idx+1)%NOTE_CHOICES.length;
+  bassNotes[pat][step]=NOTE_CHOICES[idx][1];
+  markDirty(); syncBassEditor();
+}
+buildMiniKeys();
 document.getElementById('bassStep').onchange=syncBassEditor;
 document.getElementById('setBassNote').onclick=()=>{const s=parseInt(document.getElementById('bassStep').value,10)-1;bassNotes[document.getElementById('pattern').value][s]=parseFloat(bassNoteSel.value);markDirty();document.getElementById('status').textContent='Bass step '+(s+1)+' set to '+noteName(bassNotes[document.getElementById('pattern').value][s])+'. Save pattern to keep it.';};
 // --- Live pads ---
