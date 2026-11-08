@@ -10,7 +10,7 @@ try {
 </script>
 <title>Sound Lab</title><style>
 *{box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background-color:#04070d;background-image:linear-gradient(rgba(0,240,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.06) 1px,transparent 1px),radial-gradient(600px 300px at 15% 0%,rgba(255,46,136,.18),transparent 60%),radial-gradient(600px 300px at 85% 20%,rgba(0,240,255,.16),transparent 60%);background-size:44px 44px,44px 44px,auto,auto;background-attachment:fixed;color:#e6fbff;margin:0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+body{font-family:system-ui,sans-serif;background-color:#04070d;background-image:linear-gradient(rgba(0,240,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.06) 1px,transparent 1px),radial-gradient(600px 300px at 15% 0%,rgba(255,46,136,.18),transparent 60%),radial-gradient(600px 300px at 85% 20%,rgba(0,240,255,.16),transparent 60%);background-size:44px 44px,44px 44px,auto,auto;background-attachment:fixed;color:#e6fbff;margin:0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));padding-bottom:34px;padding-bottom:max(34px, calc(16px + env(safe-area-inset-bottom)))}
 h1{margin:0 0 2px;font-size:26px;text-transform:uppercase;letter-spacing:2px;text-shadow:0 0 18px rgba(0,240,255,.65),2px 0 #ff2e88,-2px 0 #00f0ff} .tagline{color:#9fd8e2;letter-spacing:4px;font-size:12px;font-weight:700;margin:0 0 8px} p{color:#9fd8e2;line-height:1.5} button,select,input{font:inherit}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
 button{background:linear-gradient(135deg,#ff2e88,#00f0ff);color:#02131a;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;min-height:48px;font-weight:700;box-shadow:0 0 14px rgba(0,240,255,.35)}
@@ -36,7 +36,7 @@ input[type=range]{accent-color:#00f0ff;min-width:120px}
 .livepad{min-height:64px;padding:14px 10px;font-size:15px}
 .bassnote{font-size:12px;color:#9fd8e2;display:block;margin-top:2px}
 @media(max-width:600px){
- body{padding:10px 10px calc(10px + env(safe-area-inset-bottom))} h1{font-size:22px}
+ body{padding:10px 10px calc(10px + env(safe-area-inset-bottom));padding-bottom:34px;padding-bottom:max(34px, calc(10px + env(safe-area-inset-bottom)))} h1{font-size:22px}
  .controls{flex-direction:column;align-items:stretch} .controls label{display:flex;justify-content:space-between;gap:8px} .break{display:none}
  .swipe-hint{display:block}
  button{width:100%}
