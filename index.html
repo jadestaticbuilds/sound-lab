@@ -80,8 +80,8 @@ html,body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;us
 <div class="controls" id="takeCard" style="display:none">
 <span class="note" id="takeName"></span>
 <audio id="takeAudio" controls></audio>
-<button id="takeShare" class="secondary" style="display:none">Share</button>
-<button id="takeSave" class="secondary">Save</button>
+<button id="takeShare" class="secondary" style="display:none">Share take</button>
+<button id="takeSave" class="secondary">Save take</button>
 <button id="takeDiscard" class="secondary">Discard</button>
 </div>
 <div class="controls" id="mix">
@@ -101,12 +101,14 @@ html,body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;us
 <label>Pattern <select id="pattern"><option>A</option><option>B</option><option>C</option><option>D</option></select></label>
 <button id="save" class="secondary">Save pattern</button>
 <button id="songMode" class="secondary">Song mode: off</button>
+<button id="clear" class="secondary">Clear</button>
+<span id="status" class="note"></span><span id="dirty" class="note" style="color:#facc15"></span><span id="selCount" class="note"></span><span id="kitNote" class="note"></span>
+</div>
+<div class="controls"><span class="note">Get it out — exports download as files:</span>
 <button id="exportRec" class="secondary">Export 2-bar recording</button>
 <button id="exportMidi" class="secondary">Export MIDI</button>
 <a id="downloadMidi" style="display:none">Download MIDI</a>
 <a id="downloadRec" style="display:none">Download recording</a>
-<button id="clear" class="secondary">Clear</button>
-<span id="status" class="note"></span><span id="dirty" class="note" style="color:#facc15"></span><span id="selCount" class="note"></span><span id="kitNote" class="note"></span>
 </div>
 <p class="swipe-hint">↔ Swipe sideways to see all 16 steps. Track names stay pinned on the left.</p>
 <div class="grid-wrap"><div class="grid" id="grid"></div></div>
